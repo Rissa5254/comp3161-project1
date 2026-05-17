@@ -17,6 +17,148 @@ def get_db_connection():
     )
      return conn
 
+# 1. Register User
+@app.route('/register', methods=['POST'])
+def register_user():
+    data = request.get_json()
+
+    userid = data.get('userid')
+    password = data.get('password')
+    role = data.get('role')
+
+    if not userid or not password or not role:
+        return jsonify({"error": "Missing fields"}), 400
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+        INSERT INTO users (userid, password, role)
+        VALUES (%s, %s, %s)
+    """
+
+    try:
+        cursor.execute(query, (userid, password, role))
+        conn.commit()
+        return jsonify({"message": "User registered successfully"}), 201
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 400
+
+    finally:
+        cursor.close()
+        conn.close()
+
+# 2. Login User
+@app.route('/login', methods=['POST'])
+def login_user():
+    data = request.get_json()
+
+    userid = data.get('userid')
+    password = data.get('password')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    query = """
+        SELECT userid, role
+        FROM users
+        WHERE userid = %s AND password = %s
+    """
+
+    cursor.execute(query, (userid, password))
+    user = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if user:
+        return jsonify({
+            "message": "Login successful",
+            "user": user
+        }), 200
+
+    return jsonify({"error": "Invalid credentials"}), 401
+
+# 3. Create Course (ADMIN ONLY)
+@app.route('/courses', methods=['POST'])
+def create_course():
+    data = request.get_json()
+
+    course_code = data.get('course_code')
+    course_name = data.get('course_name')
+    description = data.get('description')
+    admin_userid = data.get('admin_userid')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # check admin
+    cursor.execute("SELECT role FROM users WHERE userid = %s", (admin_userid,))
+    user = cursor.fetchone()
+
+    if not user or user['role'] != 'admin':
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Only admins can create courses"}), 403
+
+    try:
+        query = """
+            INSERT INTO courses (course_code, course_name, description)
+            VALUES (%s, %s, %s)
+        """
+        cursor.execute(query, (course_code, course_name, description))
+        conn.commit()
+
+        return jsonify({"message": "Course created successfully"}), 201
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 400
+
+    finally:
+        cursor.close()
+        conn.close()
+
+# 4. Retrieve Courses
+@app.route('/courses', methods=['GET'])
+def get_courses():
+
+    student_id = request.args.get('student_id')
+    lecturer_id = request.args.get('lecturer_id')
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # student courses
+    if student_id:
+        query = """
+            SELECT c.course_code, c.course_name, c.description
+            FROM courses c
+            JOIN student_courses sc ON c.course_code = sc.course_code
+            WHERE sc.student_id = %s
+        """
+        cursor.execute(query, (student_id,))
+
+    # lecturer courses
+    elif lecturer_id:
+        query = """
+            SELECT c.course_code, c.course_name, c.description
+            FROM courses c
+            JOIN lecturer_courses lc ON c.course_code = lc.course_code
+            WHERE lc.lecturer_id = %s
+        """
+        cursor.execute(query, (lecturer_id,))
+
+    # all courses
+    else:
+        cursor.execute("SELECT course_code, course_name, description FROM courses")
+
+    courses = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(courses), 200
 
 # 5. Register for Course
 @app.route('/courses/<int:course_id>/assign-lecturer', methods=['POST'])
