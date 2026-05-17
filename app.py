@@ -178,7 +178,7 @@ def get_courses():
     return jsonify(courses), 200
 
 # 5. Register for Course
-@app.route('/courses/<int:course_id>/assign-lecturer', methods=['POST'])
+@app.route('/api/courses/<int:course_id>/assign-lecturer', methods=['POST'])
 def assign_lecturer(course_id):
     """Assign a lecturer to a course."""
     conn = None
@@ -235,7 +235,7 @@ def assign_lecturer(course_id):
             conn.close()
     
     
-@app.route('/courses/<int:course_id>/register-student', methods=['POST'])
+@app.route('/api/courses/<int:course_id>/register-student', methods=['POST'])
 def register_student(course_id):
     """Register students for a course."""
     conn = None
@@ -285,7 +285,7 @@ def register_student(course_id):
             conn.close()
 
 # 6. Retrieve Members
-@app.route('/members/<int:course_id>', methods=['GET'])
+@app.route('/api/members/<int:course_id>', methods=['GET'])
 def get_members(course_id):
     """Return members of a particular course.""" 
     conn = None
@@ -295,9 +295,16 @@ def get_members(course_id):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
+         # Check if course exists
+        cursor.execute("SELECT courseID, courseCode, courseName FROM course WHERE courseID=%s", (course_id,))
+        course = cursor.fetchone()
+        
+        if not course:
+            return jsonify({"error": "Course not found."}), 404
+        
         # Lecturers
         query = """
-        SELECT u.firstname, u.lastname, u.userID
+        SELECT  u.userID, u.firstname, u.lastname
         FROM user u 
         JOIN course_maintainer cm ON u.userID = cm.lecturerID
         WHERE cm.courseID=%s;
@@ -307,7 +314,7 @@ def get_members(course_id):
         
         # Students     
         query = """
-        SELECT u.firstname, u.lastname, u.userID
+        SELECT  u.userID, u.firstname, u.lastname
         FROM user u 
         JOIN enrollment e ON u.userID = e.studentID
         WHERE e.courseID=%s;
@@ -316,7 +323,7 @@ def get_members(course_id):
         students = cursor.fetchall()
         
         return jsonify({
-            "course_id": course_id,
+            "course": course,
             "lecturer": lecturer,
             "students": students
         }), 200
@@ -330,9 +337,10 @@ def get_members(course_id):
             cursor.close()
         if conn:
             conn.close()
+
     
 # 7. Retrieve Calendar Events
-@app.route('/courses/<int:course_id>/events', methods=['GET'])
+@app.route('/api/courses/<int:course_id>/events', methods=['GET'])
 def course_calendar(course_id):
     """Retrieve all calendar events for a particular course."""
     conn = None
@@ -371,7 +379,7 @@ def course_calendar(course_id):
         if conn:
             conn.close()
     
-@app.route('/student/<int:student_id>/events', methods=['GET'])
+@app.route('/api/student/<int:student_id>/events', methods=['GET'])
 def student_calendar(student_id):
     """Retrieve all calendar events for a particular date for a particular student.""" 
     conn = None
@@ -385,12 +393,19 @@ def student_calendar(student_id):
         if not date:
             return jsonify({"error": "Date is required (YYYY-MM-DD)"}), 400
         
+        # Check if a student exists
+        cursor.execute("SELECT * FROM user WHERE userID=%s AND userType = 'student'", (student_id,))
+        student = cursor.fetchone()
+        
+        if not student:
+            return jsonify({"error": "Student not found."}), 404
+        
         query="""
         SELECT ce.eventID, ce.courseID, ce.eventTitle, ce.description, ce.eventType, ce.eventDate, ce.dueDate
         FROM calendar_event ce
         JOIN enrollment e ON ce.courseID = e.courseID
         WHERE e.studentID = %s
-        AND ce.eventDate = %s
+        AND DATE(ce.eventDate) = %s
         ORDER BY ce.eventDate ASC
         """
     
@@ -418,7 +433,7 @@ def student_calendar(student_id):
             conn.close()
 
 # 8. Create Calendar Events 
-@app.route('/courses/<int:course_id>/events', methods=['POST'])
+@app.route('/api/courses/<int:course_id>/events', methods=['POST'])
 def create_calendar(course_id):
     """Create a calendar event for a course."""
     conn = None
