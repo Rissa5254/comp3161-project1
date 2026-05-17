@@ -1,0 +1,503 @@
+{
+  "info": {
+    "name": "COMP3161 Course Management API",
+    "description": "Complete Postman collection for the COMP3161 Final Project REST API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Register User",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"jdoe\",\n  \"password\": \"password123\",\n  \"email\": \"jdoe@example.com\",\n  \"firstname\": \"John\",\n  \"lastname\": \"Doe\",\n  \"userType\": \"student\"\n}"
+            },
+            "description": "Registers a new user. UserType must be 'admin', 'lecturer', or 'student'. Username and password are required."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. User Login",
+      "item": [
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"jdoe\",\n  \"password\": \"password123\"\n}"
+            },
+            "description": "Logs in a user with their username and password. Returns the user's username and userType on success."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Create Course",
+      "item": [
+        {
+          "name": "Create Course (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["courses"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_code\": \"COMP3161\",\n  \"course_name\": \"Database Management\",\n  \"description\": \"An introduction to relational databases.\",\n  \"semester\": \"Semester 2\",\n  \"year\": \"2026\",\n  \"admin_username\": \"admin01\"\n}"
+            },
+            "description": "Creates a new course. Only users with userType 'admin' can do this. admin_username is checked against the database."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Retrieve Courses",
+      "item": [
+        {
+          "name": "Get All Courses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["courses"]
+            },
+            "description": "Returns all courses in the system. No filters applied."
+          }
+        },
+        {
+          "name": "Get Courses for a Student",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/courses?student_id=101",
+              "host": ["{{baseUrl}}"],
+              "path": ["courses"],
+              "query": [
+                { "key": "student_id", "value": "202", "description": "The student's userID" }
+              ]
+            },
+            "description": "Returns all courses a specific student is enrolled in. Pass the student's userID as a query parameter."
+          }
+        },
+        {
+          "name": "Get Courses for a Lecturer",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/courses?lecturer_id=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["courses"],
+              "query": [
+                { "key": "lecturer_id", "value": "5", "description": "The lecturer's userID" }
+              ]
+            },
+            "description": "Returns all courses taught by a specific lecturer. Pass the lecturer's userID as a query parameter."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Register for Course",
+      "item": [
+        {
+          "name": "Assign Lecturer to Course",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/courses/1/assign-lecturer",
+              "host": ["{{baseUrl}}"],
+              "path": ["courses", "1", "assign-lecturer"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturerID\": 5\n}"
+            },
+            "description": "Assigns a lecturer to a course. A course can only have one lecturer, and a lecturer cannot be assigned to more than 5 courses."
+          }
+        },
+        {
+          "name": "Register Student for Course",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/courses/1/register-student",
+              "host": ["{{baseUrl}}"],
+              "path": ["courses", "1", "register-student"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userID\": 205\n}"
+            },
+            "description": "Enrolls a student in a course. The student must exist and must not already be enrolled."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Retrieve Members",
+      "item": [
+        {
+          "name": "Get Course Members",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/members/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["members", "1"]
+            },
+            "description": "Returns the assigned lecturer and all enrolled students for a given course."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Retrieve Calendar Events",
+      "item": [
+        {
+          "name": "Get All Events for a Course",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/courses/1/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["courses", "1", "events"]
+            },
+            "description": "Retrieves all calendar events for a course, ordered by event date."
+          }
+        },
+        {
+          "name": "Get Events for a Student on a Date",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/student/205/events?date=2025-05-16",
+              "host": ["{{baseUrl}}"],
+              "path": ["student", "216", "events"],
+              "query": [
+                { "key": "date", "value": "2025-05-16", "description": "Date in YYYY-MM-DD format (required)" }
+              ]
+            },
+            "description": "Retrieves all calendar events for a student on a given date across all their enrolled courses. The date query parameter is required."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Create Calendar Events",
+      "item": [
+        {
+          "name": "Create Calendar Event for Course",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/courses/1/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["courses", "1", "events"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventTitle\": \"Midterm Exam\",\n  \"description\": \"Covers chapters 1-5\",\n  \"eventType\": \"Assignment\",\n  \"eventDate\": \"2025-06-01\",\n  \"dueDate\": \"2025-06-01\"\n}"
+            },
+            "description": "Creates a calendar event for a course. eventTitle and eventDate are required. Set eventType to 'Assignment' for gradeable events."
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Forums",
+      "item": [
+        {
+          "name": "Get All Forums for a Course",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/course/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "course", "1"]
+            },
+            "description": "Retrieves all discussion forums for a course."
+          }
+        },
+        {
+          "name": "Create Forum for a Course",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/forums/course/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forums", "course", "1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"forumName\": \"General Discussion\",\n  \"description\": \"A place for general course questions.\"\n}"
+            },
+            "description": "Creates a new forum under the specified course. forumName is required."
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Discussion Threads",
+      "item": [
+        {
+          "name": "Get All Threads in a Forum",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/threads/forum/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "threads", "forum", "1"]
+            },
+            "description": "Retrieves all threads for a forum as a nested tree (Reddit-style)."
+          }
+        },
+        {
+          "name": "Create New Thread in a Forum",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/threads/forum/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "threads", "forum", "1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorID\": 205,\n  \"title\": \"Assignment 1 Clarification\",\n  \"content\": \"Can someone explain what question 3 is asking?\"\n}"
+            },
+            "description": "Creates a top-level thread in a forum. authorID, title, and content are all required."
+          }
+        },
+        {
+          "name": "Reply to a Thread",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/threads/1/reply",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "threads", "1", "reply"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorID\": 55,\n  \"title\": \"Re: Assignment 1 Clarification\",\n  \"content\": \"It is asking you to normalise the relation to 3NF.\"\n}"
+            },
+            "description": "Posts a reply to any thread or reply (unlimited nesting depth). authorID, title, and content are required."
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Course Content",
+      "item": [
+        {
+          "name": "Get All Content for a Course",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/content/course/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "content", "course", "1"]
+            },
+            "description": "Retrieves all sections and their content items (links, files, slides, assignments) for a course."
+          }
+        },
+        {
+          "name": "Create a Section for a Course",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/content/course/1/sections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "content", "course", "1", "sections"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturerID\": 2,\n  \"sectionTitle\": \"Week 1 - Introduction\",\n  \"description\": \"Overview and introductory material.\",\n  \"orderIndex\": 1\n}"
+            },
+            "description": "Creates a new section in a course. Only the assigned lecturer can do this. lecturerID and sectionTitle are required."
+          }
+        },
+        {
+          "name": "Add Content Item to a Section",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/content/sections/1/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "content", "sections", "1", "items"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturerID\": 2,\n  \"itemTitle\": \"Lecture Slides - Week 1\",\n  \"itemType\": \"slide\",\n  \"content\": \"Introduction to Database Design\",\n  \"filePath\": \"/uploads/week1_slides.pdf\",\n  \"url\": null,\n  \"orderIndex\": 1\n}"
+            },
+            "description": "Adds a content item to a section. lecturerID, itemTitle, and itemType are required. itemType must be one of: link, file, slide, assignment."
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Assignments",
+      "item": [
+        {
+          "name": "Get Assignments for a Course",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/course/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assignments", "course", "1"]
+            },
+            "description": "Lists all assignment-type calendar events for a course, including submission counts."
+          }
+        },
+        {
+          "name": "Submit Assignment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/1/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assignments", "1", "submit"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentID\": 205,\n  \"filePath\": \"/submissions/student205_assignment1.pdf\",\n  \"comments\": \"Please see attached submission.\"\n}"
+            },
+            "description": "A student submits (or resubmits) an assignment. studentID is required. Student must be enrolled in the course and the event must be of type 'Assignment'."
+          }
+        },
+        {
+          "name": "Grade an Assignment Submission",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/1/grade/205",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assignments", "1", "grade", "205"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturerID\": 2,\n  \"grade\": 85.5,\n  \"feedback\": \"Good work overall, but the normalisation section needed more detail.\"\n}"
+            },
+            "description": "Lecturer submits a grade (0-100) for a student's assignment. lecturerID and grade are required. The lecturer must be assigned to that course."
+          }
+        },
+        {
+          "name": "Get Student Overall Average",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/student/205/average",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assignments", "student", "205", "average"]
+            },
+            "description": "Returns a student's overall grade average across all graded submissions."
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Reports",
+      "item": [
+        {
+          "name": "Courses with 50+ Students",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/courses-50-plus-students",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "courses-50-plus-students"]
+            },
+            "description": "Returns all courses with 50 or more enrolled students, ordered by student count descending."
+          }
+        },
+        {
+          "name": "Students Doing 5+ Courses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/students-5-plus-courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "students-5-plus-courses"]
+            },
+            "description": "Returns all students enrolled in 5 or more courses, ordered by course count descending."
+          }
+        },
+        {
+          "name": "Lecturers Teaching 3+ Courses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/lecturers-3-plus-courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "lecturers-3-plus-courses"]
+            },
+            "description": "Returns all lecturers teaching 3 or more courses, ordered by course count descending."
+          }
+        },
+        {
+          "name": "Top 10 Most Enrolled Courses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/top-10-enrolled-courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "top-10-enrolled-courses"]
+            },
+            "description": "Returns the 10 most enrolled courses."
+          }
+        },
+        {
+          "name": "Top 10 Students by Overall Average",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/top-10-students-by-average",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "top-10-students-by-average"]
+            },
+            "description": "Returns the top 10 students ranked by their overall grade average."
+          }
+        }
+      ]
+    }
+  ]
+}
