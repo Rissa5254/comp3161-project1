@@ -17,28 +17,43 @@ def get_db_connection():
     )
      return conn
 
+def nest_threads(flat):
+    """Recursively nest thread replies (Reddit-style, unlimited depth)."""
+    lookup = {t["threadID"]: {**t, "replies": []} for t in flat}
+    roots  = []
+    for t in flat:
+        pid = t["parentThreadID"]
+        if pid and pid in lookup:
+            lookup[pid]["replies"].append(lookup[t["threadID"]])
+        else:
+            roots.append(lookup[t["threadID"]])
+    return roots
+
 # 1. Register User
 @app.route('/register', methods=['POST'])
 def register_user():
     data = request.get_json()
 
-    userid = data.get('userid')
+    username = data.get('username')
     password = data.get('password')
-    role = data.get('role')
+    email = data.get('email')
+    firstname = data.get('firstname')
+    lastname = data.get('lastname')
+    userType = data.get('userType')
 
-    if not userid or not password or not role:
+    if not username or not password or not userType:
         return jsonify({"error": "Missing fields"}), 400
 
-    conn = get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     query = """
-        INSERT INTO users (userid, password, role)
-        VALUES (%s, %s, %s)
+        INSERT INTO user (username, password, email, firstname, lastname, userType)
+        VALUES (%s, %s, %s, %s, %s, %s)
     """
 
     try:
-        cursor.execute(query, (userid, password, role))
+        cursor.execute(query, (username, password, email, firstname, lastname, userType))
         conn.commit()
         return jsonify({"message": "User registered successfully"}), 201
 
@@ -54,19 +69,19 @@ def register_user():
 def login_user():
     data = request.get_json()
 
-    userid = data.get('userid')
+    username = data.get('username')
     password = data.get('password')
 
-    conn = get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     query = """
-        SELECT userid, role
-        FROM users
-        WHERE userid = %s AND password = %s
+        SELECT username, userType
+        FROM user
+        WHERE username = %s AND password = %s
     """
 
-    cursor.execute(query, (userid, password))
+    cursor.execute(query, (username, password))
     user = cursor.fetchone()
 
     cursor.close()
@@ -88,26 +103,28 @@ def create_course():
     course_code = data.get('course_code')
     course_name = data.get('course_name')
     description = data.get('description')
-    admin_userid = data.get('admin_userid')
+    semester = data.get('semester')
+    year = data.get('year')
+    admin_username = data.get('admin_username')
 
-    conn = get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     # check admin
-    cursor.execute("SELECT role FROM users WHERE userid = %s", (admin_userid,))
+    cursor.execute("SELECT userType FROM user WHERE username = %s", (admin_username,))
     user = cursor.fetchone()
 
-    if not user or user['role'] != 'admin':
+    if not user or user['userType'] != 'admin':
         cursor.close()
         conn.close()
         return jsonify({"error": "Only admins can create courses"}), 403
 
     try:
         query = """
-            INSERT INTO courses (course_code, course_name, description)
-            VALUES (%s, %s, %s)
+            INSERT INTO course (courseCode, courseName, description, semester, year)
+            VALUES (%s, %s, %s, %s, %s)
         """
-        cursor.execute(query, (course_code, course_name, description))
+        cursor.execute(query, (course_code, course_name, description, semester, year))
         conn.commit()
 
         return jsonify({"message": "Course created successfully"}), 201
@@ -126,32 +143,32 @@ def get_courses():
     student_id = request.args.get('student_id')
     lecturer_id = request.args.get('lecturer_id')
 
-    conn = get_connection()
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     # student courses
     if student_id:
         query = """
-            SELECT c.course_code, c.course_name, c.description
-            FROM courses c
-            JOIN student_courses sc ON c.course_code = sc.course_code
-            WHERE sc.student_id = %s
+            SELECT c.courseName, c.courseCode, c.description
+            FROM course c
+            JOIN enrollment e ON e.courseID = c.courseID
+            WHERE e.studentID = %s
         """
         cursor.execute(query, (student_id,))
 
     # lecturer courses
     elif lecturer_id:
         query = """
-            SELECT c.course_code, c.course_name, c.description
-            FROM courses c
-            JOIN lecturer_courses lc ON c.course_code = lc.course_code
-            WHERE lc.lecturer_id = %s
+            SELECT c.courseName, c.courseCode, c.description
+            FROM course c
+            JOIN course_maintainer cm ON cm.courseID = c.courseID
+            WHERE cm.lecturerID = %s
         """
         cursor.execute(query, (lecturer_id,))
 
     # all courses
     else:
-        cursor.execute("SELECT course_code, course_name, description FROM courses")
+        cursor.execute("SELECT courseCode, courseName, description FROM course")
 
     courses = cursor.fetchall()
 
