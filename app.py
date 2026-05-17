@@ -136,9 +136,16 @@ def get_members(course_id):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
+         # Check if course exists
+        cursor.execute("SELECT courseID, courseCode, courseName FROM course WHERE courseID=%s", (course_id,))
+        course = cursor.fetchone()
+        
+        if not course:
+            return jsonify({"error": "Course not found."}), 404
+        
         # Lecturers
         query = """
-        SELECT u.firstname, u.lastname, u.userID
+        SELECT  u.userID, u.firstname, u.lastname
         FROM user u 
         JOIN course_maintainer cm ON u.userID = cm.lecturerID
         WHERE cm.courseID=%s;
@@ -148,7 +155,7 @@ def get_members(course_id):
         
         # Students     
         query = """
-        SELECT u.firstname, u.lastname, u.userID
+        SELECT  u.userID, u.firstname, u.lastname
         FROM user u 
         JOIN enrollment e ON u.userID = e.studentID
         WHERE e.courseID=%s;
@@ -157,7 +164,7 @@ def get_members(course_id):
         students = cursor.fetchall()
         
         return jsonify({
-            "course_id": course_id,
+            "course": course,
             "lecturer": lecturer,
             "students": students
         }), 200
@@ -171,6 +178,7 @@ def get_members(course_id):
             cursor.close()
         if conn:
             conn.close()
+
     
 # 7. Retrieve Calendar Events
 @app.route('/api/courses/<int:course_id>/events', methods=['GET'])
@@ -226,12 +234,19 @@ def student_calendar(student_id):
         if not date:
             return jsonify({"error": "Date is required (YYYY-MM-DD)"}), 400
         
+        # Check if a student exists
+        cursor.execute("SELECT * FROM user WHERE userID=%s AND userType = 'student'", (student_id,))
+        student = cursor.fetchone()
+        
+        if not student:
+            return jsonify({"error": "Student not found."}), 404
+        
         query="""
         SELECT ce.eventID, ce.courseID, ce.eventTitle, ce.description, ce.eventType, ce.eventDate, ce.dueDate
         FROM calendar_event ce
         JOIN enrollment e ON ce.courseID = e.courseID
         WHERE e.studentID = %s
-        AND ce.eventDate = %s
+        AND DATE(ce.eventDate) = %s
         ORDER BY ce.eventDate ASC
         """
     
