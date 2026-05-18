@@ -177,82 +177,8 @@ def get_courses():
 
     return jsonify(courses), 200
 
-# 5. Register for Course
-@app.route('/courses/<int:course_id>/assign-lecturer', methods=['POST'])
-def assign_lecturer(course_id):
-    """Assign a lecturer to a course."""
-    conn = None
-    cursor = None
-    
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        data = request.get_json()
-        lecturer_id = data.get('lecturerID')
-        
-        if not lecturer_id:
-            return jsonify({"message": "Lecturer ID required."}), 400
-        
-        # Check if course exists
-        cursor.execute("SELECT * FROM course WHERE courseID=%s", (course_id,))
-        course = cursor.fetchone()
-        if not course:
-            return jsonify({"error": "Course not found."}), 404
-        
-        # Check if a lecturer exists and is a lecturer
-        cursor.execute("SELECT * FROM user WHERE userID=%s AND userType = 'lecturer'", (lecturer_id,))
-        lecturer = cursor.fetchone()
-        if not lecturer:
-            return jsonify({"error": "Lecturer not found."}), 404
-        
-        # Check is a lecturer is assigned to 5 or more courses
-        cursor.execute("SELECT COUNT(*) AS total FROM  course_maintainer WHERE lecturerID=%s", (lecturer_id,))
-        course_count = cursor.fetchone()['total'] or  0
-        
-        if course_count >=5:
-            return jsonify({"message": "Lecturer already assigned to 5 courses."}), 400
-        
-        # Check is a lecturer is already assigned to a course
-        cursor.execute("SELECT lecturerID FROM course_maintainer WHERE courseID=%s", (course_id,))
-        exists = cursor.fetchone()
-        if exists:
-            # UPDATE existing lecturer (replace)
-            cursor.execute(
-                """
-                UPDATE course_maintainer
-                SET lecturerID = %s
-                WHERE courseID = %s
-                """,
-                (lecturer_id, course_id)
-            )
 
-            message = "Lecturer updated for course."
-        
-        else:
-            # Assign lecturer
-            cursor.execute("INSERT INTO course_maintainer (lecturerID, courseID) VALUES (%s, %s)", (lecturer_id, course_id))
-            message = "Lecturer assigned to course"
-            conn.commit()
-            
-            return jsonify({
-            "success": True,
-            "message": message,
-            "course_id": course_id,
-            "lecturer_id": lecturer_id
-        }), 201
-
-    except Exception as e:
-        if conn:
-            conn.rollback()
-        return jsonify({"success": False, "error": str(e)}), 500
-    
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-            
+# 5. Register for Course            
 @app.route('/courses/<int:course_id>/register-student', methods=['POST'])
 def assign_lecturer(course_id):
     """Assign a lecturer to a course."""
