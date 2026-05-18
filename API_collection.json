@@ -174,7 +174,7 @@
             "url": {
               "raw": "{{baseUrl}}/api/members/1",
               "host": ["{{baseUrl}}"],
-              "path": ["members", "1"]
+              "path": ["api", "members", "1"]
             },
             "description": "Returns the assigned lecturer and all enrolled students for a given course."
           }
