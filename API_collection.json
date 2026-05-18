@@ -134,9 +134,9 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": {
-              "raw": "{{baseUrl}}/courses/1/assign-lecturer",
+              "raw": "{{baseUrl}}/api/courses/203/assign-lecturer",
               "host": ["{{baseUrl}}"],
-              "path": ["courses", "1", "assign-lecturer"]
+              "path": ["api", "courses", "203", "assign-lecturer"]
             },
             "body": {
               "mode": "raw",
@@ -151,9 +151,9 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": {
-              "raw": "{{baseUrl}}/courses/1/register-student",
+              "raw": "{{baseUrl}}/api/courses/203/register-student",
               "host": ["{{baseUrl}}"],
-              "path": ["courses", "1", "register-student"]
+              "path": ["api", "courses", "203", "register-student"]
             },
             "body": {
               "mode": "raw",
