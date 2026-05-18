@@ -179,7 +179,7 @@ def get_courses():
 
 
 # 5. Register for Course            
-@app.route('/courses/<int:course_id>/register-student', methods=['POST'])
+@app.route('/api/courses/<int:course_id>/register-student', methods=['POST'])
 def assign_lecturer(course_id):
     """Assign a lecturer to a course."""
     conn = None
@@ -236,7 +236,7 @@ def assign_lecturer(course_id):
             conn.close()
 
 # 6. Retrieve Members
-@app.route('/members/<int:course_id>', methods=['GET'])
+@app.route('/api/members/<int:course_id>', methods=['GET'])
 def get_members(course_id):
     """Return members of a particular course.""" 
     conn = None
@@ -291,7 +291,7 @@ def get_members(course_id):
 
     
 # 7. Retrieve Calendar Events
-@app.route('/courses/<int:course_id>/events', methods=['GET'])
+@app.route('/api/courses/<int:course_id>/events', methods=['GET'])
 def course_calendar(course_id):
     """Retrieve all calendar events for a particular course."""
     conn = None
@@ -330,7 +330,7 @@ def course_calendar(course_id):
         if conn:
             conn.close()
     
-@app.route('/student/<int:student_id>/events', methods=['GET'])
+@app.route('/api/student/<int:student_id>/events', methods=['GET'])
 def student_calendar(student_id):
     """Retrieve all calendar events for a particular date for a particular student.""" 
     conn = None
@@ -384,7 +384,7 @@ def student_calendar(student_id):
             conn.close()
 
 # 8. Create Calendar Events 
-@app.route('/courses/<int:course_id>/events', methods=['POST'])
+@app.route('/api/courses/<int:course_id>/events', methods=['POST'])
 def create_calendar(course_id):
     """Create a calendar event for a course."""
     conn = None
