@@ -201,11 +201,11 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/student/205/events?date=2025-05-16",
+              "raw": "{{baseUrl}}/student/205/events?date=2026-05-31",
               "host": ["{{baseUrl}}"],
               "path": ["student", "216", "events"],
               "query": [
-                { "key": "date", "value": "2025-05-16", "description": "Date in YYYY-MM-DD format (required)" }
+                { "key": "date", "value": "2026-05-31", "description": "Date in YYYY-MM-DD format (required)" }
               ]
             },
             "description": "Retrieves all calendar events for a student on a given date across all their enrolled courses. The date query parameter is required."
@@ -228,7 +228,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"eventTitle\": \"Midterm Exam\",\n  \"description\": \"Covers chapters 1-5\",\n  \"eventType\": \"Assignment\",\n  \"eventDate\": \"2025-06-01\",\n  \"dueDate\": \"2025-06-01\"\n}"
+              "raw": "{\n  \"eventTitle\": \"Midterm Exam\",\n  \"description\": \"Covers chapters 1-5\",\n  \"eventType\": \"Assignment\",\n  \"eventDate\": \"2026-05-19\",\n  \"dueDate\": \"2026-06-01\"\n}"
             },
             "description": "Creates a calendar event for a course. eventTitle and eventDate are required. Set eventType to 'Assignment' for gradeable events."
           }
