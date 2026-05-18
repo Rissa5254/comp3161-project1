@@ -392,9 +392,9 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": {
-              "raw": "{{baseUrl}}/api/assignments/1/submit",
+              "raw": "{{baseUrl}}/api/assignments/256/submit",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "assignments", "1", "submit"]
+              "path": ["api", "assignments", "256", "submit"]
             },
             "body": {
               "mode": "raw",
@@ -409,9 +409,9 @@
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": {
-              "raw": "{{baseUrl}}/api/assignments/1/grade/205",
+              "raw": "{{baseUrl}}/api/assignments/256/grade/205",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "assignments", "1", "grade", "205"]
+              "path": ["api", "assignments", "256", "grade", "205"]
             },
             "body": {
               "mode": "raw",
