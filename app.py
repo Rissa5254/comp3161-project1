@@ -179,7 +179,7 @@ def get_courses():
 
 
 # 5. Register for Course            
-@app.route('/api/courses/<int:course_id>/register-student', methods=['POST'])
+@app.route('/api/courses/<int:course_id>/assign-lecturer', methods=['POST'])
 def assign_lecturer(course_id):
     """Assign a lecturer to a course."""
     conn = None
@@ -234,6 +234,57 @@ def assign_lecturer(course_id):
             cursor.close()
         if conn:
             conn.close()
+            
+
+@app.route('/api/courses/<int:course_id>/register-student', methods=['POST'])
+def register_student(course_id):
+    """Register students for a course."""
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        data = request.get_json()
+        student_id = data.get('userID')
+
+        if not student_id:
+            return jsonify({"message": "Student ID required."}), 400
+
+        # Check if course exists
+        cursor.execute("SELECT * FROM course WHERE courseID=%s", (course_id,))
+        course = cursor.fetchone()
+        if not course:
+            return jsonify({"error": "Course not found."}), 404
+
+        # Check if a student exists
+        cursor.execute("SELECT * FROM user WHERE userID=%s AND userType = 'student'", (student_id,))
+        student = cursor.fetchone()
+        if not student:
+            return jsonify({"error": "Student not found."}), 404
+
+        # Check is a student is already enrolled in a course
+        cursor.execute("SELECT * FROM enrollment WHERE studentID=%s AND courseID=%s", (student_id, course_id,))
+        enroll = cursor.fetchone()
+        if enroll:
+            return jsonify({"message": "Already enrolled in this course."}), 400
+
+        # Enroll student
+        cursor.execute("INSERT INTO enrollment(studentID, courseID) VALUES (%s, %s)", (student_id, course_id))
+        conn.commit()
+
+        return jsonify({"message": f"Student successfully enrolled in the course {course_id}."}), 201
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 
 # 6. Retrieve Members
 @app.route('/api/members/<int:course_id>', methods=['GET'])
@@ -382,6 +433,7 @@ def student_calendar(student_id):
             cursor.close()
         if conn:
             conn.close()
+            
 
 # 8. Create Calendar Events 
 @app.route('/api/courses/<int:course_id>/events', methods=['POST'])
@@ -433,6 +485,7 @@ def create_calendar(course_id):
             cursor.close()
        if conn:
             conn.close()
+            
    
 # 9. Forums
 @app.route("/api/forums/course/<int:course_id>", methods=["GET"])
